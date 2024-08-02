@@ -29,6 +29,14 @@ return [
     */
 
     'connections' => [
+        'centrifugo' => [
+            'driver' => 'centrifugo',
+            'token_hmac_secret_key'  => env('CENTRIFUGO_TOKEN_HMAC_SECRET_KEY',''),
+            'api_key'  => env('CENTRIFUGO_API_KEY',''),
+            'url'     => env('CENTRIFUGO_URL', 'https://centrifugo.whycat.space/'), // centrifugo api url
+            'verify'  => env('CENTRIFUGO_VERIFY', true), // Verify host ssl if centrifugo uses this
+            'ssl_key' => env('CENTRIFUGO_SSL_KEY', null), // Self-Signed SSl Key for Host (require verify=true)
+        ],
 
         'pusher' => [
             'driver' => 'pusher',

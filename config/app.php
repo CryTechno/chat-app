@@ -54,7 +54,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'https://whycat.space/'),
 
     'asset_url' => env('ASSET_URL'),
 
@@ -186,6 +186,7 @@ return [
          * Package Service Providers...
          */
 
+
         /*
          * Application Service Providers...
          */
@@ -195,6 +196,13 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        /*
+         * Validate Service Providers...
+         */
+        App\Providers\ValidateServiceProvider::class,
+
+        // And uncomment BroadcastServiceProvider
+        App\Providers\BroadcastServiceProvider::class,
     ],
 
     /*
