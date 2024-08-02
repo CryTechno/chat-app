@@ -11,10 +11,10 @@ class Name implements Rule
     }
     public function passes($attribute, $value): bool
     {
-        return preg_match('/^[a-zA-Z]+$/', $value);
+        return preg_match('/^[a-zA-Z\d]+$/', $value);
     }
     public function message(): string
     {
-        return 'The :attribute must contain only letters.';
+        return 'The :attribute must contain only letters and digit.';
     }
 }

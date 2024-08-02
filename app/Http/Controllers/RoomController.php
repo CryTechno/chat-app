@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Providers\ValidateServiceProvider;
 use denis660\Centrifugo\Centrifugo;
 
 use App\Models\Room;
@@ -62,8 +63,8 @@ class RoomController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:32', 'unique:rooms'],
-        ]);
+            'name' => ['required', 'string', 'min:3', 'max:10', 'unique:rooms'],
+    ]);
 
         DB::beginTransaction();
         try {

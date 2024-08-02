@@ -12,7 +12,7 @@ defineProps({
 </script>
 <template>
       <div class="flex" :class = "imSender ? 'justify-end ' : 'justify-start '">
-        <div class=" h-min-[60px] w-max-1/2 bg-gray-700 p-3 " :class = "imSender ? 'rounded-l-3xl rounded-tr-[30px] ' : 'rounded-r-3xl rounded-tl-[30px] '">
+        <div class="flex flex-col bg-gray-700 p-3 " :class = "imSender ? 'rounded-l-3xl rounded-tr-[30px] ' : 'rounded-r-3xl rounded-tl-[30px] '">
           <MessageLayout>
             <template #name>
               {{ name }}

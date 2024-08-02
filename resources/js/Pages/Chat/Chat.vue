@@ -7,18 +7,14 @@ import {router, usePage} from '@inertiajs/vue3';
 import {ref, onMounted, watch, computed, Suspense, watchEffect} from 'vue';
 import Cookies from 'js-cookie';
 import Http from "@/services/httpRequests.js"
+import InputError from "@/Components/ui/Shared/InputError.vue";
 
 const page = usePage()
 const currentUserName = computed(() => page.props.auth.user.name);
-const currentUserId = computed(() => page.props.auth.user.id);
 const token = computed(() => page.props.token);
 const csrfToken = ref('');
+const errorValidateMessagesRoomName = ref('')
 
-const tagsToReplace = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;'
-};
 const logout = () => {
     router.post('/logout')
 }
@@ -28,34 +24,33 @@ const activeRoom = ref(null);
 const messages = ref([]);
 const createRoom = (name) => {
     return Http(csrfToken.value).post('/rooms',{name})
-        .then(res => res.data.rooms)
-        .catch(error => {
+        .then(res => res.data)
+        .catch((error) => {
             console.log(error)
-            return null
+            return error.response ? error.response.data : { error: 'Unexpected error' };
         })
 }
 
 const handleCreateRoom = async (name) => {
-    const res = await createRoom(name);
-    if (res) {
-        rooms.value = res;
+    const data = await createRoom(name);
+    if (data.rooms) {
+        rooms.value = [...data.rooms].reverse();
         newRoomName.value ="";
-        res.value = null;
+        data.rooms.value = null;
     }
-    else return new Error("wow, no Room name")
+    else {
+        errorValidateMessagesRoomName.value = data.message
+    }
 };
 
-const sendMessage = async (text) => {
-    text = String(text).trim();
-    if (text.length > 0) {
+const sendMessage = async (message) => {
+    if (message.length > 0) {
         try {
-            await Http(csrfToken.value).post(`/rooms/${activeRoom.value}/publish`,{"message" : text})
+            await Http(csrfToken.value).post(`/rooms/${activeRoom.value}/publish`,{"message" : message})
 
         } catch (err) {
             console.error(err);
         }
-
-
     }
 }
 
@@ -68,37 +63,8 @@ const getRooms = () => {
     });
 }
 
-const initCentrifugo = () => {
-    console.log('JWT Token:', token);
-    const centrifugo = new Centrifuge("wss://centrifugo." + window.location.host + "/connection/websocket",{
-        token:token.value,
-        debug:true
-    });
-    centrifugo.on('connect', function(ctx) {
-        console.log("connected", ctx);
-    });
-
-    centrifugo.on('disconnect', function(ctx) {
-        console.log("disconnected", ctx);
-    });
-
-    centrifugo.on('publication', function(ctx) {
-       console.log( messages.value)
-        if (ctx.data.roomId === activeRoom.value) {
-            addMessage(ctx.data);
-            console.log(ctx.data)
-        }
-        // addRoomLastMessage(ctx.data);
-    });
-
-    centrifugo.connect();
-};
-
 const addMessage = (message) => {
     messages.value.push(message);
-}
-function safeTagsReplace(str) {
-    return str.replace(/[&<>]/g, replaceTag);
 }
 function replaceTag(tag) {
     return tagsToReplace[tag] || tag;
@@ -126,10 +92,33 @@ const joinUserInRoom = async (roomId) => {
     }
 }
 
+const initCentrifugo = () => {
+    const centrifugo = new Centrifuge("wss://centrifugo." + window.location.host + "/connection/websocket",{
+        token:token.value,
+    });
+    centrifugo.on('connect', function(ctx) {
+        console.log("connected", ctx);
+    });
+
+    centrifugo.on('disconnect', function(ctx) {
+        console.log("disconnected", ctx);
+    });
+
+    centrifugo.on('publication', function(ctx) {
+        if (ctx.data.roomId === activeRoom.value) {
+            const index = rooms.value.findIndex(room => room.id === ctx.data.roomId);
+            rooms.value[index].messages.push(ctx.data)
+            addMessage(ctx.data);
+        }
+    });
+
+    centrifugo.connect();
+};
+
 // init Centrifugo on mounted component
-onMounted(() => {
+onMounted(async () => {
     getRooms().then(res => {
-        rooms.value = res.rooms;
+        rooms.value = [...res.rooms].reverse();
     });
     initCentrifugo();
     csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -146,16 +135,17 @@ onMounted(() => {
                 <ChannelsModal :active-room = 'activeRoom' :rooms = "rooms" @on-room-change="onRoomChange"  />
             </Suspense>
           <div class="w-3/5 flex flex-col h-full ">
-            <MessageList :messages = 'messages' class="shadow-inner w-full" />
+            <MessageList :messages = 'messages' :active-room = 'activeRoom' class="shadow-inner w-full" />
           <Suspense>
-            <ChatModal @send-messages="sendMessage" />
+            <ChatModal :active-room="activeRoom" @send-messages="sendMessage" />
           </Suspense>
           </div>
           <div class="w-1/5 shadow-inner flex flex-col text-roboto  text-xl opacity-70 items-center m-auto ">
               <div class="text-white">Hello, {{currentUserName}}</div>
               <div class="cursor-pointer hover:text-secondary" @click="logout">LOGOUT</div>
               <input placeholder="Name Room..." type="text" v-model="newRoomName" class="text-gray-700" >
-              <div class="cursor-pointer hover:text-secondary" @click="handleCreateRoom(newRoomName)">create-room</div>
+              <InputError v-if="errorValidateMessagesRoomName" class="mt-2" :message="errorValidateMessagesRoomName"  />
+              <div class="cursor-pointer hover:text-secondary" @click="handleCreateRoom(newRoomName)">Create Room</div>
           </div>
         </div>
       </div>

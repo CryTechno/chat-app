@@ -31,5 +31,10 @@ class ValidateServiceProvider extends ServiceProvider
         Validator::replacer('name', function($message, $attribute, $rule, $parameters) {
             return str_replace(':attribute', $attribute, $message);
         });
+
+        Validator::extend('required_room_name', function($attribute, $value, $parameters, $validator) {
+            return preg_match('/^[a-zA-Z]+$/', $value);
+        });
+
     }
 }

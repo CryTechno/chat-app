@@ -166,6 +166,9 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'room-name' => [
+            'required' => 'The :attribute needs 3 characters or more and a unique name',
+        ],
     ],
 
     /*
