@@ -5,6 +5,8 @@ namespace App\Http\Middleware;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tightenco\Ziggy\Ziggy;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Facades\JWTFactory;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,6 +41,11 @@ class HandleInertiaRequests extends Middleware
                     'location' => $request->url(),
                 ]);
             },
+            'token' => $request->user() ? JWTAuth::claims([
+                'sub' => (string) $request->user()->id,
+                'exp' => time() + 86400,
+                'channels' => ["personal#".$request->user()->id],
+            ])->fromUser($request->user()): null,
         ]);
     }
 }

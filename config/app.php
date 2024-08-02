@@ -186,6 +186,7 @@ return [
          * Package Service Providers...
          */
 
+
         /*
          * Application Service Providers...
          */
@@ -195,6 +196,13 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        /*
+         * Validate Service Providers...
+         */
+        App\Providers\ValidateServiceProvider::class,
+
+        // And uncomment BroadcastServiceProvider
+        App\Providers\BroadcastServiceProvider::class,
     ],
 
     /*

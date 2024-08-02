@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use Tymon\JWTAuth\Facades\JWTAuth;
+
 
 class AuthenticatedSessionController extends Controller
 {
@@ -31,10 +33,9 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+        return redirect()->route('chat');
     }
 
     /**
@@ -43,9 +44,8 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
-
+        $request->session()->forget('jwt_token');
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

@@ -22,6 +22,8 @@
     "dependencies": {
         "@vitejs/plugin-vue": "^4.6.2",
         "@vitejs/plugin-vue-jsx": "^4.0.0",
+        "centrifuge": "^5.0.4",
+        "js-cookie": "^3.0.5",
         "vue": "^3.3.11",
         "vue-loader": "^17.4.2"
     }

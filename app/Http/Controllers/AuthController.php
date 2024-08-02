@@ -15,6 +15,7 @@ class AuthController extends Controller
     public function __construct()
     {
         $this->middleware('auth:api', ['except' => ['login']]);
+
     }
 
     /**
@@ -25,8 +26,8 @@ class AuthController extends Controller
     public function login()
     {
         $credentials = request(['name', 'password']);
-        
-        if (! $token = auth()->attempt($credentials)) {
+
+        if (! $token = Auth::guard('api')->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -40,7 +41,7 @@ class AuthController extends Controller
      */
     public function me()
     {
-        return response()->json(auth()->user());
+        return response()->json(Auth::guard('api')->user());
     }
 
     /**
@@ -62,7 +63,7 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken(auth()->refresh());
+        return $this->respondWithToken(Auth::guard('api')->refresh());
     }
 
     /**
@@ -77,7 +78,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
+            'expires_in' => auth('api')->factory()->getTTL() * 60
         ]);
     }
 }

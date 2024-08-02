@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Validator;
 
 class ValidateServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,12 @@ class ValidateServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Validator::extend('name', function($attribute, $value, $parameters, $validator) {
+            return preg_match('/^[a-zA-Z]+$/', $value);
+        });
+
+        Validator::replacer('name', function($message, $attribute, $rule, $parameters) {
+            return str_replace(':attribute', $attribute, $message);
+        });
     }
 }
