@@ -15,6 +15,7 @@ class Message extends Model
       "sender_id",
       "sender_name",
     ];
+
     public function room()
     {
         return $this->hasOne(Room::class);
@@ -22,6 +23,6 @@ class Message extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class,"sender_id");
+        return $this->belongsTo(User::class, "sender_id");
     }
 }

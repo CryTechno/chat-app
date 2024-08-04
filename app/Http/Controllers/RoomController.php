@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\RoomCreationException;
 use App\Providers\ValidateServiceProvider;
 use denis660\Centrifugo\Centrifugo;
 
@@ -46,13 +47,13 @@ class RoomController extends Controller
         }])->find($id);
 
         return response()->json([
-        'rooms' => $rooms,
-        'currRoom' => $room,
-        'isJoin' => $room->users->contains('id', Auth::user()->id),
+            'rooms' => $rooms,
+            'currRoom' => $room,
+            'isJoin' => $room->users->contains('id', Auth::user()->id),
         ]);
     }
 
-    public function join(int $id)
+    public function join(Room $id)
     {
         $room = Room::find($id);
         $room->users()->attach(Auth::user()->id);
@@ -64,19 +65,19 @@ class RoomController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'min:3', 'max:10', 'unique:rooms'],
-    ]);
+        ]);
 
         DB::beginTransaction();
         try {
             $room = Room::create(['name' => $request->get('name')]);
-            $room->users()->attach(Auth::user()->id);
+            $room->users()->attach($request->user()->id);
             DB::commit();
+            return redirect()->route('rooms.show', $room->id);
         } catch (Throwable $e) {
             DB::rollBack();
-            Log::error($e->getMessage());
         }
 
-        return redirect()->route('rooms.show', $room->id);
+        throw new RoomCreationException($e->getMessage());
     }
 
     public function publish(int $id, Request $request)
@@ -86,8 +87,8 @@ class RoomController extends Controller
 
         try {
             $message = Message::create([
-                'sender_id' => Auth::user()->id,
-                "sender_name" => Auth::user()->name,
+                'sender_id' => $request->user()->id,
+                "sender_name" => $request->user()->name,
                 'message' => $requestData["message"],
                 'room_id' => $id,
 

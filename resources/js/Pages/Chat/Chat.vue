@@ -72,7 +72,7 @@ function replaceTag(tag) {
 const onRoomChange = (room) =>{
     if (activeRoom.value !== room.id ){
         activeRoom.value = room.id;
-        messages.value = [...room.messages];
+        messages.value = [...(room.messages ?? [])];
         const usersNames = room.users.map((user) => user.name);
         if(usersNames.indexOf(currentUserName.value)===-1){
             joinUserInRoom(room.id);
@@ -107,6 +107,9 @@ const initCentrifugo = () => {
     centrifugo.on('publication', function(ctx) {
         if (ctx.data.roomId === activeRoom.value) {
             const index = rooms.value.findIndex(room => room.id === ctx.data.roomId);
+            if (!rooms.value[index].messages) {
+                rooms.value[index].messages = [];
+            }
             rooms.value[index].messages.push(ctx.data)
             addMessage(ctx.data);
         }
